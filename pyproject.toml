@@ -34,3 +34,7 @@ pyupgrade = "^3.10.1"
 blacken-docs = "^1.16.0"
 
 [tool.bandit]
+exclude_dirs = ["tests/*"]
+
+[tool.mypy]
+namespace_packages = true
