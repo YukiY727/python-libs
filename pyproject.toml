@@ -38,3 +38,10 @@ exclude_dirs = ["tests/*"]
 
 [tool.mypy]
 namespace_packages = true
+
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
