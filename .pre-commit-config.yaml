@@ -145,6 +145,8 @@ repos:
         entry: codespell
         language: system
         files: '.*'
+        args:
+          - "--ignore-words=ci/ignore_words.txt"
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
