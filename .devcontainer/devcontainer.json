@@ -1,0 +1,22 @@
+{
+  "name": "libs",
+  "dockerComposeFile": "../../docker-compose.yml",
+  "service": "libs",
+  "workspaceFolder": "/app",
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "python.pythonPath": "/app/.venv/bin/python"
+  },
+  "extensions": [
+    "ms-python.python",
+    "KevinRose.vsc-python-indent",
+    "batisteo.vscode-django",
+    "streetsidesoftware.code-spell-checker",
+    "dbaeumer.vscode-eslint",
+    "christian-kohler.path-intellisense",
+    "VisualStudioExptTeam.vscodeintellicode",
+    "GitHub.copilot",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml"
+  ]
+}

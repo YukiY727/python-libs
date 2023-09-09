@@ -1,0 +1,27 @@
+FROM python:3.11-bullseye
+
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV GIT_DISCOVERY_ACROSS_FILESYSTEM=1
+ENV PYTHONPATH="$PYTHONPATH:/app"
+
+
+# システム依存ライブラリのインストール
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    git \
+    ruby ruby-dev \
+    tree \
+    && rm -rf /var/lib/apt/lists/*
+
+# Poetry のインストール
+RUN pip install --no-cache-dir poetry
+
+WORKDIR /app
+
+# プロジェクトの依存関係をインストール
+COPY libs /app
+RUN poetry config virtualenvs.in-project true \
+    && poetry install --with dev,ci,test --no-interaction --no-ansi --no-root && poetry env info --path

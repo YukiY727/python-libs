@@ -1,0 +1,173 @@
+repos:
+  - repo: local
+    hooks:
+      - id: black-diff
+        name: black-diff
+        entry: black
+        language: system
+        types_or:
+          - python
+          - pyi
+        require_serial: true
+        args:
+          - "--diff"
+          - "--color"
+        verbose: true
+      - id: black
+        name: black
+        entry: black
+        language: system
+        types_or:
+          - python
+          - pyi
+        require_serial: true
+      - id: blacken-docs
+        name: blacken-docs
+        entry: blacken-docs
+        language: system
+        files: '\.(rst|md|markdown|py|tex)$'
+      - id: autoflake-diff
+        name: autoflake-diff
+        entry: autoflake
+        language: system
+        types:
+          - python
+        require_serial: true
+        verbose: true
+      - id: autoflake
+        name: autoflake
+        entry: autoflake
+        language: system
+        types:
+          - python
+        require_serial: true
+        args:
+          - "--in-place"
+      - id: isort-diff
+        name: isort-diff
+        entry: isort
+        language: system
+        require_serial: true
+        types_or:
+          - cython
+          - pyi
+          - python
+        args:
+          - '--diff'
+          - '--filter-files'
+        verbose: true
+      - id: isort
+        name: isort
+        entry: isort
+        language: system
+        require_serial: true
+        types_or:
+          - cython
+          - pyi
+          - python
+        args:
+          - '--filter-files'
+      - id: flake8
+        name: flake8
+        entry: flake8
+        language: system
+        types:
+          - python
+        require_serial: true
+      - id: bandit
+        name: bandit
+        entry: bandit
+        language: system
+        types:
+          - python
+        args:
+          - "-c"
+          - "pyproject.toml"
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types_or:
+          - python
+          - pyi
+        require_serial: true
+        pass_filenames: false
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        types: [shell]
+        require_serial: true
+      - id: mdformat-check
+        name: mdformat-check
+        entry: mdformat
+        language: system
+        types: [markdown]
+        args:
+          - "--check"
+      - id: mdformat
+        name: mdformat
+        entry: mdformat
+        language: system
+        types: [markdown]
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types:
+          - python
+      - id: pyupgrade
+        name: pyupgrade
+        entry: pyupgrade
+        language: system
+        types_or:
+          - python
+      - id: python-safety-dependencies-check
+        name: python-safety-dependencies-check
+        entry: bash -c 'poetry export -f requirements.txt --without-hashes | safety check --stdin'
+        language: system
+        types:
+          - file
+        files: requirements\.txt$
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        types: [python]
+        args: []
+      - id : rstcheck
+        name: rstcheck
+        entry: rstcheck
+        language: system
+        types: [rst]
+      - id: codespell
+        name: codespell
+        entry: codespell
+        language: system
+        files: '.*'
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-byte-order-marker
+      - id: check-yaml
+      - id: check-json
+      - id: pretty-format-json
+        args:
+          - "--no-sort-keys"
+          - "--autofix"
+      - id: check-toml
+      - id: check-case-conflict
+      - id: check-merge-conflict
+        args:
+          - "--assume-in-merge"
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+      - id: debug-statements
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args:
+          - "--allow-missing-credentials"
+      - id: check-added-large-files
+      - id: check-symlinks

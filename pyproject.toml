@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "libs"
+version = "0.1.0"
+description = ""
+authors = ["YukiY <kntk7@outlook.jp>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+sqlalchemy = "^2.0.20"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.1"
+
+[tool.poetry.group.ci.dependencies]
+pre-commit = "^3.4.0"
+safety = "^2.3.5"
+codespell = "^2.2.5"
