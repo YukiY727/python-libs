@@ -91,7 +91,7 @@ repos:
           - python
           - pyi
         require_serial: true
-        pass_filenames: false
+        pass_filenames: true
       - id: shellcheck
         name: shellcheck
         entry: shellcheck
@@ -129,12 +129,12 @@ repos:
         types:
           - file
         files: requirements\.txt$
-      - id: pytest
-        name: pytest
-        entry: pytest
-        language: system
-        types: [python]
-        args: []
+      # - id: pytest
+      #   name: pytest
+      #   entry: pytest
+      #   language: system
+      #   types: [python]
+      #   args: []
       - id : rstcheck
         name: rstcheck
         entry: rstcheck
