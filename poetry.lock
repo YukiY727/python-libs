@@ -97,6 +97,20 @@ jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
+name = "blacken-docs"
+version = "1.16.0"
+description = "Run Black on Python code blocks in documentation files."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "blacken_docs-1.16.0-py3-none-any.whl", hash = "sha256:b0dcb84b28ebfb352a2539202d396f50e15a54211e204a8005798f1d1edb7df8"},
+    {file = "blacken_docs-1.16.0.tar.gz", hash = "sha256:b4bdc3f3d73898dfbf0166f292c6ccfe343e65fc22ddef5319c95d1a8dcc6c1c"},
+]
+
+[package.dependencies]
+black = ">=22.1.0"
+
+[[package]]
 name = "certifi"
 version = "2023.7.22"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -1382,4 +1396,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "5fcdcbee0d5dd12d133f864b8379ea96ce1892eabe38e92a2238a5931a470922"
+content-hash = "3e31c60798ed304c987aea4895dd8b05dcef2a793f95cafe453167c247491e25"
