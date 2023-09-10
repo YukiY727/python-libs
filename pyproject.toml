@@ -14,10 +14,9 @@ sqlalchemy = "^2.0.20"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry.group.dev.dependencies]
-
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.1"
+psycopg2 = "^2.9.7"
 
 [tool.poetry.group.ci.dependencies]
 pre-commit = "^3.4.0"
