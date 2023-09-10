@@ -23,4 +23,4 @@ WORKDIR /app
 # プロジェクトの依存関係をインストール
 COPY libs /app
 RUN poetry config virtualenvs.in-project true \
-    && poetry install --with dev,ci,test --no-interaction --no-ansi --no-root && poetry env info --path
+    && poetry install --with ci,test --no-interaction --no-ansi --no-root
