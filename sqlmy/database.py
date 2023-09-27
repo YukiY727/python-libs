@@ -2,6 +2,7 @@
 databaseを管理するモジュール。
 """
 import threading
+from functools import wraps
 from typing import Any
 
 from sqlalchemy import (
@@ -77,32 +78,44 @@ class Database(metaclass=SingletonMeta):
             self.initialized = False
             self.trans = []
 
+    @staticmethod
+    def _ensure_connection(func):
+        """
+        メソッドを呼び出す前に接続を確立する。
+        """
+
+        @wraps(func)
+        def wrapper(self: "Database", *args, **kwargs):
+            if not self.initialized:
+                self.connect()
+            return func(self, *args, **kwargs)
+
+        return wrapper
+
+    @_ensure_connection
     def create_tables(self):
         """
         初期化されていない場合、初期化し、テーブルを作成する。
         """
-        if not self.initialized:
-            self.connect()
         self.metadata.create_all(self.engine)
         self.metadata.reflect(bind=self.engine)
 
+    @_ensure_connection
     def start_transaction(self):
         """
         トランザクションを開始する。すでにトランザクションが開始されている場合は何もしない。
         """
-        if not self.initialized:
-            self.connect()
         if not self.trans:
             self.trans.append(self.connection.begin())
 
+    @_ensure_connection
     def start_nested_transaction(self):
         """
-        ネストされたトランザクションを開始する。接続が初期化されていない場合はエラーを出す。
+        ネストされたトランザクションを開始する。
         """
-        if not self.initialized:
-            raise SQLAlchemyError("Connection is not initialized.")
         self.trans.append(self.connection.begin_nested())
 
+    @_ensure_connection
     def commit_transaction(self):
         """
         現在のトランザクションをコミットする。トランザクションが開始されていない場合はエラーを出す。
@@ -127,6 +140,7 @@ class Database(metaclass=SingletonMeta):
         current_trans = self.trans.pop()
         current_trans.rollback()
 
+    @_ensure_connection
     def execute_query(self, query: str, **params) -> Any:
         """
         与えられたクエリを実行し、結果を返す。
@@ -142,7 +156,7 @@ class Database(metaclass=SingletonMeta):
             SQLAlchemyError: クエリの実行に失敗した場合
         """
         if not self.connection:
-            raise SQLAlchemyError("Connection is not initialized.")
+            raise SQLAlchemyError("Database is not initialized.")
         if not self.trans:
             raise SQLAlchemyError("Transaction is not started.")
         try:
@@ -159,6 +173,7 @@ class Database(metaclass=SingletonMeta):
             # SQLAlchemyのエラーに関するハンドリング
             raise error
 
+    @_ensure_connection
     def execute_query_with_transaction(self, query: str, **params) -> Any:
         """
         与えられたクエリをトランザクション内で実行する。

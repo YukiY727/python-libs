@@ -248,13 +248,15 @@ class TestDatabase:
         """
         並行してデータベースにデータを挿入できることを確認する
         """
+
         # 並行してデータベースにデータを挿入
-        threads = [
-            threading.Thread(
-                target=db_instance.execute_query_with_transaction(
-                    "INSERT INTO sample_table (name) VALUES (:name)", name=name
-                )
+        def insert_data(name: int):
+            db_instance.execute_query_with_transaction(
+                "INSERT INTO sample_table (name) VALUES (:name)", name=name
             )
+
+        threads = [
+            threading.Thread(target=insert_data, args=(name,))
             for name in range(10)
         ]
         for thread in threads:
