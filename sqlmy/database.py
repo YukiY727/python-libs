@@ -10,6 +10,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from utils.singleton import SingletonMeta
 
@@ -33,6 +34,17 @@ class Database(metaclass=SingletonMeta):
         Args:
             metadata (MetaData): sqlalchemyのMetaDataオブジェクト
             engine_url (str): sqlalchemyのエンジンURL
+                dialect+driver://username:password@host:port/database
+                dialect: 使用するデータベースのタイプ
+                        （例：postgresql, mysql, sqlite, oracle など）。
+                driver: 使用するデータベースのドライバ
+                        （例：psycopg2 はPostgreSQL用の人気のあるドライバ）。
+                        ドライバ部分はオプションであり、省略するとデフォルトのドライバが使用されます。
+                username: データベースへのログインユーザー名。
+                password: データベースへのログインパスワード。
+                host: データベースのホスト名またはIPアドレス。
+                port: データベースのポート番号。
+                database: 接続するデータベース名。
         """
         self.metadata = metadata
         self.engine = create_engine(engine_url)
@@ -51,11 +63,15 @@ class Database(metaclass=SingletonMeta):
     def disconnect(self):
         """
         データベースから切断する。接続が確立されていない場合は何もしない。
+        データベースから切断すると、
+        リソースが解放される
+        トランザクションが開始されている場合はロールバックされる
         """
         if self.connection:
             self.connection.close()
             self.connection = None
             self.initialized = False
+            self.trans = []
 
     def create_tables(self):
         """
@@ -64,6 +80,7 @@ class Database(metaclass=SingletonMeta):
         if not self.initialized:
             self.connect()
         self.metadata.create_all(self.engine)
+        self.metadata.reflect(bind=self.engine)
 
     def start_transaction(self):
         """
@@ -122,7 +139,8 @@ class Database(metaclass=SingletonMeta):
         """
         if not self.connection:
             raise SQLAlchemyError("Connection is not initialized.")
-
+        if not self.trans:
+            raise SQLAlchemyError("Transaction is not started.")
         try:
             result_proxy = self.connection.execute(text(query), params)
 
@@ -164,6 +182,29 @@ class Database(metaclass=SingletonMeta):
             self.metadata.tables[table_name].drop(self.engine)
         else:
             raise SQLAlchemyError(f"Table {table_name} does not exist.")
+
+    def create_database(self):
+        """
+        データベースを作成する。
+        """
+        if not database_exists(self.engine.url):
+            create_database(self.engine.url)
+
+    def drop_database(self):
+        """
+        データベースを削除する。
+        """
+        if database_exists(self.engine.url):
+            drop_database(self.engine.url)
+
+    def exists_database(self) -> bool:
+        """
+        データベースが存在するかどうかを返す。
+
+        Returns:
+            bool: データベースが存在するかどうか
+        """
+        return database_exists(self.engine.url)
 
     def __del__(self):
         """

@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 sqlalchemy = "^2.0.20"
+sqlalchemy-utils = "^0.41.1"
 
 
 [build-system]
@@ -44,3 +45,7 @@ line-length = 79
 [tool.isort]
 profile = "black"
 line_length = 79
+
+[[tool.mypy.overrides]]
+module = "sqlalchemy_utils"
+ignore_missing_imports = true
