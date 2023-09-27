@@ -1,6 +1,7 @@
 """
 database.pyのテスト
 """
+import threading
 from typing import Generator
 
 import pytest
@@ -51,12 +52,6 @@ TEST_ENGINE_URL = (
 
 #     cursor.close()
 #     conn.close()
-
-
-# def insert_into_database(db_instance: Database, value: int):
-#     db_instance.execute_query(
-#         "INSERT INTO sample_table (name) VALUES (:name)", name=value
-#     )
 
 
 # @pytest.fixture(scope="session")
@@ -146,6 +141,25 @@ class TestDatabase:
         assert len(result) == 1  # Test2はロールバックされているので1つだけの結果
         assert result[0][1] == "Test1"
 
+    def test_nest_transaction_error(self, db_instance: Database):
+        """
+        nestされたトランザクション内で内部トランザクションがエラーになった場合、
+        内部トランザクションがロールバックされ、外部トランザクションがコミットされることを確認
+        """
+        db_instance.start_transaction()
+        db_instance.execute_query(
+            "INSERT INTO sample_table (name) VALUES (:name)", name="Test1"
+        )
+        db_instance.start_nested_transaction()  # 内部トランザクション
+        with pytest.raises(SQLAlchemyError):
+            db_instance.execute_query("INVALID SQL QUERY")
+        db_instance.commit_transaction()  # 外部トランザクションのコミット
+        db_instance.start_transaction()
+        result = db_instance.execute_query("SELECT * FROM sample_table")
+        db_instance.commit_transaction()
+        assert len(result) == 1  # Test2はロールバックされているので1つだけの結果
+        assert result[0][1] == "Test1"
+
     def test_transaction_error(self, db_instance: Database):
         """トランザクション内でのエラー処理を確認する"""
         db_instance.start_transaction()
@@ -200,6 +214,25 @@ class TestDatabase:
         db_instance.commit_transaction()
         assert affected_rows == 1
 
+    def test_execute_query_with_transaction(self, db_instance: Database):
+        """トランザクション内でのクエリ実行を確認する"""
+        db_instance.execute_query_with_transaction(
+            "INSERT INTO sample_table (name) VALUES (:name)", name="Test"
+        )
+        db_instance.start_transaction()
+        result = db_instance.execute_query("SELECT * FROM sample_table")
+        db_instance.commit_transaction()
+        assert result[0][1] == "Test"
+
+    def test_execute_query_with_transaction_error(self, db_instance: Database):
+        """
+        トランザクション内でinvalidなクエリ実行の場合、 トランザクションが
+        ロールバックされることを確認する
+        """
+        with pytest.raises(SQLAlchemyError):
+            db_instance.execute_query_with_transaction("INVALID SQL QUERY")
+        assert db_instance.trans == []
+
     def test_exists_table(self, db_instance: Database):
         """テーブルが存在することを確認する"""
         assert db_instance.exists_table("sample_table") is True
@@ -211,20 +244,28 @@ class TestDatabase:
         assert db_instance.exists_table("sample_table") is False
         db_instance.create_tables()
 
-    # def test_concurrent_insert_with_threading(self, db_instance: Database):
+    def test_concurrent_insert_with_threading(self, db_instance: Database):
+        """
+        並行してデータベースにデータを挿入できることを確認する
+        """
+        # 並行してデータベースにデータを挿入
+        threads = [
+            threading.Thread(
+                target=db_instance.execute_query_with_transaction(
+                    "INSERT INTO sample_table (name) VALUES (:name)", name=name
+                )
+            )
+            for name in range(10)
+        ]
+        for thread in threads:
+            thread.start()
 
-    #     # 並行してデータベースにデータを挿入
-    #     threads = [threading.Thread(target=insert_into_database,
-    # args=(db_instance, i)) for i in range(10)]
-    #     for thread in threads:
-    #         thread.start()
+        # すべてのスレッドが終了するのを待つ
+        for thread in threads:
+            thread.join()
 
-    #     # すべてのスレッドが終了するのを待つ
-    #     for thread in threads:
-    #         thread.join()
-
-    #     # データベースのレコード数を確認
-    #     result = db_instance.execute_query("SELECT
-    # COUNT(*)FROM sample_table")
-    #     # 10スレッドがそれぞれ1つのレコードを挿入しているので、合計10レコードが存在するはず
-    #     assert result[0][0] == 10
+        # データベースのレコード数を確認
+        db_instance.start_transaction()
+        result = db_instance.execute_query("SELECT COUNT(*) FROM sample_table")
+        # 10スレッドがそれぞれ1つのレコードを挿入しているので、合計10レコードが存在するはず
+        assert result[0][0] == 10

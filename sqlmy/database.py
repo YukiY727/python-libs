@@ -1,6 +1,9 @@
 """
 databaseを管理するモジュール。
 """
+import threading
+from typing import Any
+
 from sqlalchemy import (
     Connection,
     MetaData,
@@ -51,6 +54,7 @@ class Database(metaclass=SingletonMeta):
         self.connection: Connection | None = None
         self.trans: list[Transaction] = []
         self.initialized = False
+        self._lock = threading.Lock()
 
     def connect(self):
         """
@@ -123,7 +127,7 @@ class Database(metaclass=SingletonMeta):
         current_trans = self.trans.pop()
         current_trans.rollback()
 
-    def execute_query(self, query: str, **params):
+    def execute_query(self, query: str, **params) -> Any:
         """
         与えられたクエリを実行し、結果を返す。
 
@@ -154,6 +158,24 @@ class Database(metaclass=SingletonMeta):
             self.rollback_transaction()
             # SQLAlchemyのエラーに関するハンドリング
             raise error
+
+    def execute_query_with_transaction(self, query: str, **params) -> Any:
+        """
+        与えられたクエリをトランザクション内で実行する。
+
+        Args:
+            query (str): 実行するクエリ
+            **params: クエリに渡すパラメータ
+
+        Returns:
+            クエリの結果。SELECT文の場合は結果セット、INSERT文の場合は最後の行ID、その他の場合は影響を受けた行数。
+
+        """
+        with self._lock:
+            self.start_transaction()
+            result = self.execute_query(query, **params)
+            self.commit_transaction()
+        return result
 
     def exists_table(self, table_name: str) -> bool:
         """
