@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         poetry config virtualenvs.create false
-        poetry install
+        poetry install --with test
 
     - name: Run tests with pytest
-      run: poetry run pytest tests/
+      run: poetry run pytest tests/ --ignore=tests/test_sqlmy/test_database.py

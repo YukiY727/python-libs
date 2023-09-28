@@ -96,12 +96,6 @@ repos:
         types:
           - file
         files: requirements\.txt$
-      - id: pytest
-        name: pytest
-        entry: pytest
-        language: system
-        types: [python]
-        args: []
       - id : rstcheck
         name: rstcheck
         entry: rstcheck
