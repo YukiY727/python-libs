@@ -13,7 +13,7 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from utils.singleton import SingletonMeta
@@ -179,6 +179,16 @@ class Database(metaclass=SingletonMeta):
             if query.strip().upper().startswith("INSERT"):
                 return result_proxy.lastrowid  # 挿入された行のIDを返す
             return result_proxy.rowcount  # 影響を受けた行数を返す
+        except IntegrityError as error:
+            self.rollback_transaction()
+            # 一意性制約違反のエラーに関するハンドリング
+            raise error
+
+        except OperationalError as error:
+            self.rollback_transaction()
+            # データベースの接続エラーに関するハンドリング
+            raise error
+
         except SQLAlchemyError as error:
             self.rollback_transaction()
             # SQLAlchemyのエラーに関するハンドリング
