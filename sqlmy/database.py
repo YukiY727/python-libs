@@ -92,6 +92,20 @@ class Database(metaclass=SingletonMeta):
 
         return wrapper
 
+    @staticmethod
+    def _error_not_start_transaction(func):
+        """
+        トランザクションが開始されていない場合に発生するエラー。
+        """
+
+        @wraps(func)
+        def wrapper(self: "Database", *args, **kwargs):
+            if not self.trans:
+                raise SQLAlchemyError("Transaction is not started.")
+            return func(self, *args, **kwargs)
+
+        return wrapper
+
     @_ensure_connection
     def create_tables(self):
         """
@@ -115,6 +129,7 @@ class Database(metaclass=SingletonMeta):
         """
         self.trans.append(self.connection.begin_nested())
 
+    @_error_not_start_transaction
     @_ensure_connection
     def commit_transaction(self):
         """
@@ -123,11 +138,10 @@ class Database(metaclass=SingletonMeta):
         Raises:
             SQLAlchemyError: トランザクションが開始されていない場合
         """
-        if not self.trans:
-            raise SQLAlchemyError("Transaction is not started.")
         current_trans = self.trans.pop()
         current_trans.commit()
 
+    @_error_not_start_transaction
     def rollback_transaction(self):
         """
         現在のトランザクションをロールバックする。トランザクションが開始されていない場合はエラーを出す。
@@ -135,11 +149,10 @@ class Database(metaclass=SingletonMeta):
         Raises:
             SQLAlchemyError: トランザクションが開始されていない場合
         """
-        if not self.trans:
-            raise SQLAlchemyError("Transaction is not started.")
         current_trans = self.trans.pop()
         current_trans.rollback()
 
+    @_error_not_start_transaction
     @_ensure_connection
     def execute_query(self, query: str, **params) -> Any:
         """
@@ -157,8 +170,6 @@ class Database(metaclass=SingletonMeta):
         """
         if not self.connection:
             raise SQLAlchemyError("Database is not initialized.")
-        if not self.trans:
-            raise SQLAlchemyError("Transaction is not started.")
         try:
             result_proxy = self.connection.execute(text(query), params)
 
