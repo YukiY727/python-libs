@@ -13,6 +13,7 @@ from sqlalchemy import (
     inspect,
     text,
 )
+from sqlalchemy.engine.reflection import ReflectedColumn
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
@@ -263,6 +264,32 @@ class Database(metaclass=SingletonMeta):
             bool: データベースが存在するかどうか
         """
         return database_exists(self.engine.url)
+
+    def get_table_schema(self, table_name: str) -> list[ReflectedColumn]:
+        """
+        指定されたテーブルのスキーマを返す。
+
+        Args:
+            table_name (str): テーブル名
+
+        Returns:
+            dict: テーブルのスキーマ
+        """
+        inspector = inspect(self.engine)
+        return inspector.get_columns(table_name)
+
+    def get_table_schema_type(self, table_name: str) -> dict[str, str]:
+        """
+        指定されたテーブルのカラムと型を返す。
+
+        Args:
+            table_name (str): テーブル名
+
+        Returns:
+            dict: テーブルのカラムと型
+        """
+        schema = self.get_table_schema(table_name)
+        return {column["name"]: str(column["type"]) for column in schema}
 
     def __del__(self):
         """

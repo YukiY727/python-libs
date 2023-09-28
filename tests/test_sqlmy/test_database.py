@@ -28,43 +28,6 @@ TEST_ENGINE_URL = (
 )
 
 
-# @pytest.fixture(scope="session", autouse=True)
-# def create_and_drop_database():
-#     # デフォルトのデータベース(通常は"postgres")に接続
-#     conn = psycopg2.connect(dbname="test_database",
-# user="test_user", password="test_password", host="test_db", port="5432")
-#     conn.autocommit = True  # このモードを使ってデータベースの作成と削除を行う
-
-#     cursor = conn.cursor()
-
-#     # テストの前: データベースを作成
-#     cursor.execute(f"DROP DATABASE IF EXISTS {DATABASE_NAME};")
-#     cursor.execute(f"CREATE DATABASE {DATABASE_NAME};")
-
-
-#     yield  # ここでテストが実行される
-
-#     # テストの後: データベースを削除
-#     cursor.execute(f"SELECT pg_terminate_backend(pg_stat_activity.pid)
-# FROM pg_stat_activity WHERE pg_stat_activity.datname = '{DATABASE_NAME}'
-# AND pid <> pg_backend_pid();")
-#     cursor.execute(f"DROP DATABASE {DATABASE_NAME};")
-
-#     cursor.close()
-#     conn.close()
-
-
-# @pytest.fixture(scope="session")
-# def create_tables_fixture(db_instance: Database):
-#     # テストの前: テーブルを作成
-#     db_instance.create_tables()
-
-#     yield  # ここでテストが実行される
-
-#     # テストの後: テーブルを削除
-#     db_instance.drop_table("sample_table")
-
-
 @pytest.fixture
 def db_instance() -> Generator[Database, None, None]:
     """database.Databaseのインスタンスを作成する"""
@@ -271,3 +234,11 @@ class TestDatabase:
         result = db_instance.execute_query("SELECT COUNT(*) FROM sample_table")
         # 10スレッドがそれぞれ1つのレコードを挿入しているので、合計10レコードが存在するはず
         assert result[0][0] == 10
+
+    def test_get_table_schema_type(self, db_instance: Database):
+        """テーブルのスキーマを取得する"""
+        column_type_dict = db_instance.get_table_schema_type("sample_table")
+        assert column_type_dict == {
+            "id": "INTEGER",
+            "name": "VARCHAR",
+        }
