@@ -13,10 +13,11 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.engine.reflection import ReflectedColumn
+from sqlalchemy.engine.interfaces import ReflectedColumn
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
+from utils.convert_type.pandas_sql import convert_sql_type_to_pd_type
 from utils.singleton import SingletonMeta
 
 
@@ -278,7 +279,7 @@ class Database(metaclass=SingletonMeta):
         inspector = inspect(self.engine)
         return inspector.get_columns(table_name)
 
-    def get_table_schema_type(self, table_name: str) -> dict[str, str]:
+    def get_table_column_and_type(self, table_name: str) -> dict[str, str]:
         """
         指定されたテーブルのカラムと型を返す。
 
@@ -288,8 +289,26 @@ class Database(metaclass=SingletonMeta):
         Returns:
             dict: テーブルのカラムと型
         """
+        if not self.exists_table(table_name):
+            raise ValueError(f"Table {table_name} does not exist.")
         schema = self.get_table_schema(table_name)
         return {column["name"]: str(column["type"]) for column in schema}
+
+    def make_pd_type_dict_from_schema(self, table_name: str) -> dict[str, str]:
+        """
+        table_nameのテーブルのカラムと型をpandasの型に変換した辞書を返す。
+
+        Args:
+            table_name (str): テーブル名
+
+        Returns:
+            dict: テーブルのカラムとpandasの型
+        """
+        schema_type = self.get_table_column_and_type(table_name)
+        return {
+            column: convert_sql_type_to_pd_type(sql_type)
+            for column, sql_type in schema_type.items()
+        }
 
     def __del__(self):
         """
