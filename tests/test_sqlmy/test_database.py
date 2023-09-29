@@ -4,6 +4,7 @@ database.pyのテスト
 import threading
 from typing import Generator
 
+import pandas as pd
 import pytest
 from sqlalchemy import Column, Integer, MetaData, String, Table
 from sqlalchemy.exc import SQLAlchemyError
@@ -16,7 +17,7 @@ metadata = MetaData()
 sample_table = Table(
     "sample_table",
     metadata,
-    Column("id", Integer, primary_key=True),
+    Column("id", Integer),
     Column("name", String),
 )
 
@@ -282,3 +283,53 @@ class TestDatabaseSchema:
             "id": "Int64",
             "name": "object",
         }
+
+
+class TestDatabasePandas:
+    """
+    database.Databaseのpandas操作に関するテスト
+    """
+
+    @pytest.fixture
+    def sample_df(self):
+        """サンプルのDataFrameを作成する"""
+        return pd.DataFrame(
+            {"id": [1, 2, 3], "name": ["Test1", "Test2", "Test3"]}
+        )
+
+    def test_df_to_sql(self, db_instance: Database, sample_df: pd.DataFrame):
+        """DataFrameをテーブルに保存する"""
+        db_instance.df_to_sql(sample_df, "sample_table")
+        db_instance.start_transaction()
+        result = db_instance.execute_query("SELECT * FROM sample_table")
+        db_instance.commit_transaction()
+        assert result == [(1, "Test1"), (2, "Test2"), (3, "Test3")]
+
+    def test_df_to_sql_parallel(
+        self, db_instance: Database, sample_df: pd.DataFrame
+    ):
+        """DataFrameを並列にテーブルに保存する"""
+        threads = [
+            threading.Thread(
+                target=db_instance.df_to_sql, args=(sample_df, "sample_table")
+            )
+            for _ in range(2)
+        ]
+
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        db_instance.start_transaction()
+        result = db_instance.execute_query("SELECT * FROM sample_table")
+        db_instance.commit_transaction()
+        assert result == [
+            (1, "Test1"),
+            (2, "Test2"),
+            (3, "Test3"),
+            (1, "Test1"),
+            (2, "Test2"),
+            (3, "Test3"),
+        ]

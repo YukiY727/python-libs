@@ -3,8 +3,9 @@ databaseを管理するモジュール。
 """
 import threading
 from functools import wraps
-from typing import Any
+from typing import Any, Literal
 
+import pandas as pd
 from sqlalchemy import (
     Connection,
     MetaData,
@@ -309,6 +310,33 @@ class Database(metaclass=SingletonMeta):
             column: convert_sql_type_to_pd_type(sql_type)
             for column, sql_type in schema_type.items()
         }
+
+    def df_to_sql(
+        self,
+        df: pd.DataFrame,  # pylint: disable=C0103
+        table_name: str,
+        if_exists: Literal["fail", "replace", "append"] = "append",
+    ):
+        """
+        pandasのDataFrameをデータベースに書き込む。
+
+        Args:
+            df (DataFrame): 書き込むデータ
+            table_name (str): テーブル名
+            if_exists (str, optional): テーブルが存在する場合の動作。
+                "fail": エラーを出す。
+                "replace": テーブルを削除してから書き込む。
+                "append": テーブルに追加する。
+                Defaults to "append".
+        """
+        with self._lock:
+            df.to_sql(
+                table_name,
+                self.engine,
+                if_exists=if_exists,
+                index=False,
+                method="multi",
+            )
 
     def __del__(self):
         """
