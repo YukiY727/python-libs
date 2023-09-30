@@ -4,6 +4,7 @@ Databaseクラスを受け取り、リポジトリを返すファクトリクラ
 """
 
 from sqlmy.database import Database
+from sqlmy.repository.log_data import LogDataRepository
 from sqlmy.repository.stock_data import StockDataRepository
 
 
@@ -16,7 +17,8 @@ class RepositoryFactory:
     def __init__(self, database: Database):
         self.database = database
         self.repositories = {
-            "stock_data": StockDataRepository(self.database)
+            "stock_data": StockDataRepository(self.database),
+            "log_data": LogDataRepository(self.database),
             # 他のテーブルのリポジトリもここに追加できます。
         }
 

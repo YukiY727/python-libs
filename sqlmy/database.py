@@ -118,10 +118,39 @@ class Database(metaclass=SingletonMeta):
         self.metadata.reflect(bind=self.engine)
 
     @_ensure_connection
+    def create_table(self, table_name: str):
+        """
+        指定されたテーブルを作成する。
+
+        Args:
+            table_name (str): 作成するテーブルの名前。
+
+        Raises:
+            ValueError: テーブルがmetadataに登録されていない場合
+        """
+        if table_name not in self.metadata.tables:
+            raise ValueError(f"Table {table_name} is not defined in metadata.")
+        if self.exists_table(table_name):
+            return
+        if not self.connection:
+            raise SQLAlchemyError("Database is not initialized.")
+        table = self.metadata.tables[table_name]
+        if not self.engine.dialect.has_table(self.connection, table_name):
+            table.create(self.engine)
+
+    def get_registered_tables(self) -> list[str]:
+        """
+        metadataに登録されているテーブルの名前のリストを返す。
+        """
+        return list(self.metadata.tables.keys())
+
+    @_ensure_connection
     def start_transaction(self):
         """
         トランザクションを開始する。すでにトランザクションが開始されている場合は何もしない。
         """
+        if self.connection.in_transaction():
+            raise SQLAlchemyError("Transaction is already started.")
         if not self.trans:
             self.trans.append(self.connection.begin())
 
@@ -170,6 +199,8 @@ class Database(metaclass=SingletonMeta):
 
         Raises:
             SQLAlchemyError: クエリの実行に失敗した場合
+            IntegrityError: 一意性制約違反のエラー
+            OperationalError: データベースの接続エラー
         """
         if not self.connection:
             raise SQLAlchemyError("Database is not initialized.")
