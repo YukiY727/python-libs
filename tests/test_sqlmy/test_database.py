@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy import Column, Integer, MetaData, String, Table
 from sqlalchemy.exc import SQLAlchemyError
 
-from sqlmy.database import Database
+from libs.sqlmy.database import Database
 
 metadata = MetaData()
 

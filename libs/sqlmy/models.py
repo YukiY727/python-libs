@@ -13,7 +13,7 @@ from sqlalchemy import (
     Text,
 )
 
-from utils.time_zone.time import current_japan_time
+from libs.utils.time_zone.time import current_japan_time
 
 metadata = MetaData()
 

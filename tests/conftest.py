@@ -6,8 +6,8 @@ from typing import Generator
 import pytest
 from sqlalchemy import Column, DateTime, Integer, MetaData, String, Table, Text
 
-from sqlmy.database import Database
-from utils.time_zone.time import current_japan_time
+from libs.sqlmy.database import Database
+from libs.utils.time_zone.time import current_japan_time
 
 test_metadata = MetaData()
 

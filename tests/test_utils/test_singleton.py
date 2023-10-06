@@ -4,7 +4,7 @@ singleton.pyのテスト
 import threading
 import time
 
-from utils.singleton import SingletonMeta
+from libs.utils.singleton import SingletonMeta
 
 
 class TestSingleton:

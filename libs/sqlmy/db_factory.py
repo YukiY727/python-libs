@@ -3,9 +3,9 @@ Databaseクラスを受け取り、リポジトリを返すファクトリクラ
 のモジュール。
 """
 
-from sqlmy.database import Database
-from sqlmy.repository.log_data import LogDataRepository
-from sqlmy.repository.stock_data import StockDataRepository
+from libs.sqlmy.database import Database
+from libs.sqlmy.repository.log_data import LogDataRepository
+from libs.sqlmy.repository.stock_data import StockDataRepository
 
 
 # pylint: disable=too-few-public-methods

@@ -18,8 +18,8 @@ from sqlalchemy.engine.interfaces import ReflectedColumn
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
-from utils.convert_type.pandas_sql import convert_sql_type_to_pd_type
-from utils.singleton import SingletonMeta
+from libs.utils.convert_type.pandas_sql import convert_sql_type_to_pd_type
+from libs.utils.singleton import SingletonMeta
 
 
 class Database(metaclass=SingletonMeta):

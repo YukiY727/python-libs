@@ -1,8 +1,8 @@
 """
 db_factory.pyのテスト
 """
-from sqlmy.database import Database
-from sqlmy.db_factory import RepositoryFactory
+from libs.sqlmy.database import Database
+from libs.sqlmy.db_factory import RepositoryFactory
 
 
 class TestDbFactory:

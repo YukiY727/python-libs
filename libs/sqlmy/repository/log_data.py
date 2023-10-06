@@ -2,8 +2,8 @@
 stock_dataテーブルのリポジトリモジュール。
 """
 
-from sqlmy.database import Database
-from sqlmy.models import logs
+from libs.sqlmy.database import Database
+from libs.sqlmy.models import logs
 
 
 # pylint: disable=too-few-public-methods

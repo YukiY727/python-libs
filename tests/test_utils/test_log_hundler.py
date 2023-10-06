@@ -6,8 +6,8 @@ import logging
 
 import pytest
 
-from sqlmy.database import Database
-from utils.logs.hundler import setup_logging
+from libs.sqlmy.database import Database
+from libs.utils.logs.hundler import setup_logging
 
 
 class TestLogDatabase:

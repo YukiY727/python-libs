@@ -5,8 +5,8 @@ import logging
 
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 
-from sqlmy.database import Database
-from utils.time_zone.time import current_japan_time
+from libs.sqlmy.database import Database
+from libs.utils.time_zone.time import current_japan_time
 
 
 class DatabaseLogHandler(logging.Handler):
