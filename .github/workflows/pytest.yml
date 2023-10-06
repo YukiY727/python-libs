@@ -24,4 +24,4 @@ jobs:
         poetry install --with test
 
     - name: Run tests with pytest
-      run: poetry run pytest tests/ --ignore=tests/test_sqlmy --ignore=tests/utils/test_log_hundler.py
+      run: poetry run pytest tests/ --ignore=tests/test_sqlmy --ignore=tests/test_utils/test_log_hundler.py
