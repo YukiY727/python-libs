@@ -18,5 +18,8 @@
     "GitHub.copilot",
     "ms-azuretools.vscode-docker",
     "redhat.vscode-yaml"
+  ],
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
   ]
 }
